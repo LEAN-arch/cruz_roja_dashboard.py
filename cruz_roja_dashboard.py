@@ -1,6 +1,6 @@
 # cruz_roja_dashboard_ai_enhanced.py
 # The definitive, AI-enhanced dashboard based on the 2013 Cruz Roja Tijuana Situational Diagnosis.
-# V5 - ValueError Fix, Complete and Unabridged Code
+# V6 - IndexError Fix
 
 import streamlit as st
 import pandas as pd
@@ -111,7 +111,8 @@ start_date, end_date = st.sidebar.date_input(
 period_df = daily_df[(daily_df['date'].dt.date >= start_date) & (daily_df['date'].dt.date <= end_date)]
 
 # --- Main Tabs ---
-tabs = st.tabs([
+# SME FIX: The number of tabs created now matches the number of `with tabs[]` blocks.
+tab_list = [
     "📈 **Executive Summary**", 
     "🔮 **AI & Predictive Analytics**",
     "💰 **Financial Health**", 
@@ -119,9 +120,10 @@ tabs = st.tabs([
     "🏥 **Hospital Services**",
     "👥 **HR & Sentiment**",
     "📋 **Recommendations**"
-])
+]
+tabs = st.tabs(tab_list)
 
-# ============================ TAB 1: EXECUTIVE SUMMARY ============================
+# ============================ TAB 0: EXECUTIVE SUMMARY ============================
 with tabs[0]:
     st.header("Top-Level Findings & Key Risks from 2013 Report")
     st.info("""
@@ -145,7 +147,7 @@ with tabs[0]:
         fig_certs.update_traces(texttemplate='%{text}%', textposition='outside'); fig_certs.update_yaxes(range=[0,100])
         st.plotly_chart(fig_certs, use_container_width=True)
 
-# ============================ TAB 2: AI & PREDICTIVE ANALYTICS ============================
+# ============================ TAB 1: AI & PREDICTIVE ANALYTICS ============================
 with tabs[1]:
     st.header("🔮 AI & Predictive Analytics Hub")
     st.markdown("Use predictive forecasts and inferential statistics to guide strategic decisions.")
@@ -183,21 +185,8 @@ with tabs[1]:
     corr_matrix = period_df[['visits', 'wait_time_min', 'ai_risk_score']].corr()
     st.plotly_chart(px.imshow(corr_matrix, text_auto=True, aspect="auto", color_continuous_scale='RdBu_r', range_color=[-1, 1], title="Correlation Between Daily Metrics for Selected Period"), use_container_width=True)
 
-# ============================ TAB 3: POPULATION & CONTEXT ============================
+# ============================ TAB 2: FINANCIAL HEALTH ============================
 with tabs[2]:
-    st.header("🏙️ Population & Context")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("Population Growth Projection")
-        st.plotly_chart(px.line(original_data['population_projection'], x="Year", y="Population", markers=True, title="Projected to Double Between 2010-2030"), use_container_width=True)
-        st.caption("Source: Table 1, p. 21")
-    with col2:
-        st.subheader("Population by Margin of Poverty")
-        st.plotly_chart(px.pie(original_data['marginalization_data'], names='Level', values='Percentage', title="~60% of Population in Medium to High Poverty"), use_container_width=True)
-        st.caption("Source: Figure 2, p. 22")
-
-# ============================ TAB 4: FINANCIAL HEALTH ============================
-with tabs[3]:
     st.header("💰 Financial Health Analysis")
     col1, col2 = st.columns([1,2])
     with col1:
@@ -220,8 +209,8 @@ with tabs[3]:
         st.plotly_chart(px.bar(original_data['cost_per_patient_area'], x='Cost', y='Area', orientation='h', title="Cost per Patient by Hospital Area"), use_container_width=True)
         st.caption("Source: Table 27, p. 65")
 
-# ============================ TAB 5: PREHOSPITAL OPERATIONS ============================
-with tabs[4]:
+# ============================ TAB 3: PREHOSPITAL OPERATIONS ============================
+with tabs[3]:
     st.header("🚑 Prehospital Field Operations")
     col1, col2 = st.columns(2)
     with col1:
@@ -237,8 +226,8 @@ with tabs[4]:
     st.plotly_chart(px.bar(original_data['response_time_by_base'].sort_values("Avg Response Time (min)"), y="Base", x="Avg Response Time (min)", orientation='h', title="Response Times Vary Significantly by Base", text="Avg Response Time (min)").update_traces(texttemplate='%{text:.1f} min', textposition='inside'), use_container_width=True)
     st.caption("Source: Table 17, p. 48")
 
-# ============================ TAB 6: HOSPITAL SERVICES ============================
-with tabs[5]:
+# ============================ TAB 4: HOSPITAL SERVICES ============================
+with tabs[4]:
     st.header("🏥 Hospital Services")
     kpis = original_data['hospital_kpis']
     hosp_cols = st.columns(3)
@@ -251,8 +240,8 @@ with tabs[5]:
     st.progress(kpis['er_specialized_compliance'], text=f"ER Specialized Equipment Compliance: {kpis['er_specialized_compliance']}%")
     st.caption("Source: p. 70")
     
-# ============================ TAB 7: HR & SENTIMENT ============================
-with tabs[6]:
+# ============================ TAB 5: HR & SENTIMENT ============================
+with tabs[5]:
     st.header("👥 Human Resources & Stakeholder Sentiment")
     col1, col2 = st.columns(2)
     with col1:
@@ -271,8 +260,8 @@ with tabs[6]:
     st.error(f"**Hospital Safety Index: {original_data['disaster_readiness']['Hospital Safety Index']}**", icon="🚨")
     st.caption("Source: p. 84")
 
-# ============================ TAB 8: RECOMMENDATIONS ============================
-with tabs[7]:
+# ============================ TAB 6: RECOMMENDATIONS ============================
+with tabs[6]:
     st.header("📋 Summary of Report Recommendations")
     st.markdown("A complete list of actionable short and long-term recommendations proposed in the 2013 report.")
     st.subheader("Short-Term Priorities (Implement within 1 Year)")
@@ -294,7 +283,7 @@ with tabs[7]:
         - **Disaster Funding:** Create mechanisms to mobilize dedicated funds for disaster response readiness.
         - **Professional Development:** Establish a robust continuing education program for all staff.
         - **Hospital Safety:** Implement the "Hospital Seguro" program to address the critical 'C' safety rating.
-        - **Community Engagement:** Develop public education programs on when and how to properly use emergency services.
+        - **Community Engagement:** Develop public education programs on proper use of emergency services.
         - **Technology:** Improve systems for real-time information exchange between services.
         - **Research:** Lay the groundwork for a professional prehospital research strategy.
         """)
