@@ -1,6 +1,6 @@
-# cruz_roja_dashboard_platinum_final_v6.py
+# cruz_roja_dashboard_platinum_final_v7_complete.py
 # The definitive, AI-enhanced dashboard based on the 2013 Cruz Roja Tijuana Situational Diagnosis.
-# This version is complete, unabridged, and includes all data, all visualizations, and all AI modules.
+# This version is complete, unabridged, and includes all data, all visualizations, and all AI modules, with all bugs fixed.
 
 import streamlit as st
 import pandas as pd
@@ -37,7 +37,7 @@ def load_and_simulate_data():
         "marginalization_data": pd.DataFrame([{"Level": "Very High", "Percentage": 1.0}, {"Level": "High", "Percentage": 15.0}, {"Level": "Medium", "Percentage": 44.0}, {"Level": "Low", "Percentage": 24.0}, {"Level": "Very Low", "Percentage": 14.0}, {"Level": "N/A", "Percentage": 2.0}]),
         "funding_data": pd.DataFrame([{'Source': 'Donations & Projects', 'Percentage': 53.2},{'Source': 'General Services', 'Percentage': 25.9},{'Source': 'Fundraising', 'Percentage': 12.6},{'Source': 'Training Center', 'Percentage': 7.5},{'Source': 'Other', 'Percentage': 0.8}]),
         "uninsured_patients_pct": 89.4,
-        "monthly_operating_costs": pd.DataFrame({'Month': ['Oct','Nov','Dec','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep'], 'Medical': [3482131,3473847,3667978,2775683,2564990,2778673,3177997,2696104,2502781,2912605,3275804,3155497], 'Paramedic': [2127730,2651096,2076126,1996603,2039858,1862567,2301656,1914002,1952308,2210602,3221977,1936905]}),
+        "monthly_operating_costs": pd.DataFrame({'Month': ['Oct','Nov','Dec','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep'], 'Medical': [3482131,3473847,3667978,2775683,2564990,2778673,3177997,2696104,2502781,2912605,3275804,3155497], 'Paramedic': [2127730,2651096,2076126,1996603,2039858,1862567,2301656,1914002,1952308,2210602,2321977,1936905]}),
         "weekly_costs": pd.DataFrame({"Category": ["Medical", "Paramedic"], "Normal": [219139, 183169], "Overtime": [17081, 53914]}),
         "cost_per_patient_type": pd.DataFrame([{'Type': 'Deceased on Arrival', 'Cost': 792.77}, {'Type': 'Minor', 'Cost': 814.80}, {'Type': 'Non-Critical', 'Cost': 840.62}, {'Type': 'Critical (Trauma)', 'Cost': 1113.81}, {'Type': 'Critical (Medical)', 'Cost': 1164.57}]),
         "cost_per_patient_area": pd.DataFrame([{'Area': 'ER (Group I)', 'Cost': 902.04}, {'Area': 'ER (Group II)', 'Cost': 1031.31}, {'Area': 'ER (Group III)', 'Cost': 1434.81}, {'Area': 'Hospital', 'Cost': 1072.64}, {'Area': 'Pediatrics', 'Cost': 967.92}, {'Area': 'ICU', 'Cost': 2141.39}]),
@@ -48,10 +48,31 @@ def load_and_simulate_data():
         "hospital_service_volume": pd.DataFrame([{"Area": "Hospitalized", "Patients": 650}, {"Area": "Pediatrics", "Patients": 206}, {"Area": "Red Room (Critical)", "Patients": 95}, {"Area": "ICU", "Patients": 56}]),
         "er_bed_occupancy_monthly": pd.DataFrame({'Month': ['Oct','Nov','Dec','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep'], 'Occupancy (%)': [40.5, 45.0, 47.2, 44.7, 43.3, 46.6, 49.3, 49.9, 43.7, 48.9, 44.2, 45.0]}),
         "hospital_kpis": {"er_patients_annual": 33010, "avg_er_wait_time": "23:27", "avg_bed_occupancy_er": 45.4, "er_compliance_score": 87, "er_specialized_compliance": 95},
+        "paramedic_staff_dist": pd.DataFrame([{"Type": "Basic TUM", "Count": 61}, {"Type": "Intermediate TUM", "Count": 17}]),
+        "doctor_staff_dist": pd.DataFrame([{"Type": "General", "Count": 7}, {"Type": "Anesthesiologist", "Count": 6}, {"Type": "General Surgeon", "Count": 6}, {"Type": "Pediatrician", "Count": 5}]),
+        "nurse_staff_dist": pd.DataFrame([{"Type": "Certified", "Count": 20}, {"Type": "Auxiliary", "Count": 11}, {"Type": "Specialist", "Count": 2}]),
         "certification_data": {'Doctors_ATLS': 13, 'Paramedics_ACLS': 67, 'Nurses_ACLS': 16},
         "disaster_readiness": {"Hospital Safety Index": "C (Urgent Action Required)"},
-        "staff_sentiment": {'strengths': {'Paramedic': 'Services Offered (59%)'},'opportunities': {'Paramedic': 'Salary (45%)'},'motivation': {'Paramedic': 'Salary (69%)'}},
-        "patient_sentiment": {'satisfaction_score': 8.6, 'main_reason': 'Accident (50%)', 'improvement_area': 'Information & Courtesy (26% each)'}
+        "staff_sentiment": {'strengths': {'Medical': 'Services Offered (58%)', 'Paramedic': 'Services Offered (59%)'},'opportunities': {'Medical': 'Training (42%)', 'Paramedic': 'Salary (45%)'},'motivation': {'Medical': 'Salary (58%)', 'Paramedic': 'Salary (69%)'}},
+        "patient_sentiment": {'satisfaction_score': 8.6, 'main_reason': 'Accident (50%)', 'improvement_area': 'Information & Courtesy (26% each)'},
+        "ambulance_fleet_analysis": pd.DataFrame([
+            {'Unit': 175, 'Brand': 'Mercedes', 'CostPerService': 178.34, 'Services': 722, 'MaintBurdenPct': 87.4},
+            {'Unit': 163, 'Brand': 'Volkswagen', 'CostPerService': 165.96, 'Services': 638, 'MaintBurdenPct': 78.3},
+            {'Unit': 169, 'Brand': 'Volkswagen', 'CostPerService': 157.78, 'Services': 1039, 'MaintBurdenPct': 25.7},
+            {'Unit': 170, 'Brand': 'Volkswagen', 'CostPerService': 130.41, 'Services': 1048, 'MaintBurdenPct': 25.6},
+            {'Unit': 176, 'Brand': 'Mercedes', 'CostPerService': 120.73, 'Services': 676, 'MaintBurdenPct': 97.1},
+            {'Unit': 167, 'Brand': 'Nissan', 'CostPerService': 114.04, 'Services': 677, 'MaintBurdenPct': 2.3},
+            {'Unit': 196, 'Brand': 'Peugeot', 'CostPerService': 110.00, 'Services': 663, 'MaintBurdenPct': 16.9},
+            {'Unit': 183, 'Brand': 'Ford', 'CostPerService': 100.28, 'Services': 1620, 'MaintBurdenPct': 6.7},
+            {'Unit': 184, 'Brand': 'Ford', 'CostPerService': 98.17, 'Services': 1164, 'MaintBurdenPct': 1.9},
+        ]),
+        "material_cost_per_acuity": pd.DataFrame([
+            {'Acuity': 'Deceased on Arrival', 'Material Cost': 17.45},
+            {'Acuity': 'Minor', 'Material Cost': 39.48},
+            {'Acuity': 'Non-Critical', 'Material Cost': 65.30},
+            {'Acuity': 'Critical (Trauma)', 'Material Cost': 338.49},
+            {'Acuity': 'Critical (Medical)', 'Material Cost': 389.25},
+        ])
     }
     
     er_visits_monthly = [2829, 2548, 2729, 2780, 2306, 2775, 2744, 2774, 2754, 2934, 2985, 2852]
@@ -69,6 +90,7 @@ def load_and_simulate_data():
     daily_df['diagnosis'] = np.random.choice(diagnoses, len(daily_df), p=[0.30, 0.40, 0.05, 0.05, 0.05, 0.15])
     daily_df['wait_time_min'] = np.maximum(5, daily_df['visits'] * 0.2 + np.random.normal(5, 5, len(daily_df)))
     daily_df['acuity'] = np.random.choice([1, 2, 3], len(daily_df), p=[0.7, 0.2, 0.1])
+    daily_df['paramedic_calls'] = np.random.randint(4, 8, len(daily_df))
     daily_df['ai_risk_score'] = (daily_df['acuity'] * 20) + np.random.uniform(10, 35, len(daily_df))
     
     return original_data, daily_df
@@ -94,7 +116,7 @@ def predict_resource_hotspots(df: pd.DataFrame):
     return hotspots_df.sort_values('predicted_cases', ascending=False)
 
 def analyze_wait_time_drivers(df: pd.DataFrame):
-    if df.empty: return pd.DataFrame()
+    if df.empty or df.shape[0] < 10: return pd.DataFrame() # Need enough data for regression
     df_drivers = pd.get_dummies(df[['wait_time_min', 'visits', 'diagnosis', 'acuity']], columns=['diagnosis'], drop_first=True)
     X = df_drivers.drop('wait_time_min', axis=1)
     y = df_drivers['wait_time_min']
@@ -135,9 +157,7 @@ with tabs[0]:
         wait_time_drivers = analyze_wait_time_drivers(daily_df)
         if not wait_time_drivers.empty:
             top_driver = wait_time_drivers.iloc[0]
-            st.success(f"""
-            Inferential analysis suggests the single biggest driver of ER wait times is not just patient volume, but specifically cases diagnosed as **{top_driver['Factor'].replace('diagnosis_', '')}**, adding an average of **{top_driver['Impact (min)']:.1f} minutes** per case. This allows for targeted process improvements over general 'crowd control'.
-            """, icon="💡")
+            st.success(f"Inferential analysis suggests the single biggest driver of ER wait times is not just patient volume, but specifically cases diagnosed as **{top_driver['Factor'].replace('diagnosis_', '')}**, adding an average of **{top_driver['Impact (min)']:.1f} minutes** per case. This allows for targeted process improvements over general 'crowd control'.", icon="💡")
         else:
             st.warning("Could not run wait time driver analysis.")
             
@@ -269,11 +289,11 @@ with tabs[7]:
     st.subheader("Short-Term Priorities (Implement within 1 Year)")
     with st.expander("Show All Short-Term Recommendations"):
         st.markdown("""
-        - **Legislation:** Propose municipal regulations for minimum EMT/paramedic education levels.
-        - **Data Integrity & PPE:** Enforce mandatory use of Personal Protective Equipment (PPE) and accurate, complete FRAP documentation for every incident.
-        - **Staffing:** Conduct a cost-benefit analysis of overtime vs. hiring new staff.
-        - **Triage:** Establish and implement a formal triage system at the hospital.
-        - **Training:** Mandate minimum certifications (BLS, ACLS, ATLS/PHTLS) for all clinical roles.
+        - **Training & Certification:** Immediately fund and mandate ATLS for doctors and ACLS for paramedics and nurses.
+        - **Data Integrity:** Implement a mandatory, simplified digital FRAP system to close the 23% reporting gap.
+        - **Financial Modeling:** Use the AI capacity planner to conduct a formal cost-benefit analysis of overtime vs. new hires.
+        - **Operational Efficiency:** Establish a formal triage system at the hospital and pilot a tiered-response system for ambulances to better match resources to patient acuity.
+        - **Inventory:** Develop a system of maximums and minimums for supply management.
         """)
     st.subheader("Long-Term Strategic Goals (1-3+ Year Horizon)")
     with st.expander("Show All Long-Term Recommendations"):
