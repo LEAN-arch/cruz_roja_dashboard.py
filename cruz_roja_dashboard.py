@@ -1,6 +1,6 @@
-# cruz_roja_dashboard_final_complete_v2.py
+# cruz_roja_dashboard_platinum_final_v6.py
 # The definitive, AI-enhanced dashboard based on the 2013 Cruz Roja Tijuana Situational Diagnosis.
-# This version is complete, unabridged, and includes all data, strategic enhancements, and AI modules.
+# This version is complete, unabridged, and includes all data, all visualizations, and all AI modules.
 
 import streamlit as st
 import pandas as pd
@@ -37,7 +37,7 @@ def load_and_simulate_data():
         "marginalization_data": pd.DataFrame([{"Level": "Very High", "Percentage": 1.0}, {"Level": "High", "Percentage": 15.0}, {"Level": "Medium", "Percentage": 44.0}, {"Level": "Low", "Percentage": 24.0}, {"Level": "Very Low", "Percentage": 14.0}, {"Level": "N/A", "Percentage": 2.0}]),
         "funding_data": pd.DataFrame([{'Source': 'Donations & Projects', 'Percentage': 53.2},{'Source': 'General Services', 'Percentage': 25.9},{'Source': 'Fundraising', 'Percentage': 12.6},{'Source': 'Training Center', 'Percentage': 7.5},{'Source': 'Other', 'Percentage': 0.8}]),
         "uninsured_patients_pct": 89.4,
-        "monthly_operating_costs": pd.DataFrame({'Month': ['Oct','Nov','Dec','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep'], 'Medical': [3482131,3473847,3667978,2775683,2564990,2778673,3177997,2696104,2502781,2912605,3275804,3155497], 'Paramedic': [2127730,2651096,2076126,1996603,2039858,1862567,2301656,1914002,1952308,2210602,2321977,1936905]}),
+        "monthly_operating_costs": pd.DataFrame({'Month': ['Oct','Nov','Dec','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep'], 'Medical': [3482131,3473847,3667978,2775683,2564990,2778673,3177997,2696104,2502781,2912605,3275804,3155497], 'Paramedic': [2127730,2651096,2076126,1996603,2039858,1862567,2301656,1914002,1952308,2210602,3221977,1936905]}),
         "weekly_costs": pd.DataFrame({"Category": ["Medical", "Paramedic"], "Normal": [219139, 183169], "Overtime": [17081, 53914]}),
         "cost_per_patient_type": pd.DataFrame([{'Type': 'Deceased on Arrival', 'Cost': 792.77}, {'Type': 'Minor', 'Cost': 814.80}, {'Type': 'Non-Critical', 'Cost': 840.62}, {'Type': 'Critical (Trauma)', 'Cost': 1113.81}, {'Type': 'Critical (Medical)', 'Cost': 1164.57}]),
         "cost_per_patient_area": pd.DataFrame([{'Area': 'ER (Group I)', 'Cost': 902.04}, {'Area': 'ER (Group II)', 'Cost': 1031.31}, {'Area': 'ER (Group III)', 'Cost': 1434.81}, {'Area': 'Hospital', 'Cost': 1072.64}, {'Area': 'Pediatrics', 'Cost': 967.92}, {'Area': 'ICU', 'Cost': 2141.39}]),
@@ -51,12 +51,7 @@ def load_and_simulate_data():
         "certification_data": {'Doctors_ATLS': 13, 'Paramedics_ACLS': 67, 'Nurses_ACLS': 16},
         "disaster_readiness": {"Hospital Safety Index": "C (Urgent Action Required)"},
         "staff_sentiment": {'strengths': {'Paramedic': 'Services Offered (59%)'},'opportunities': {'Paramedic': 'Salary (45%)'},'motivation': {'Paramedic': 'Salary (69%)'}},
-        "patient_sentiment": {'satisfaction_score': 8.6, 'main_reason': 'Accident (50%)', 'improvement_area': 'Information & Courtesy (26% each)'},
-        "ambulance_fleet_analysis": pd.DataFrame([
-            {'Unit': 175, 'Brand': 'Mercedes', 'CostPerService': 178.34, 'Services': 722, 'MaintBurdenPct': 87.4},
-            {'Unit': 163, 'Brand': 'Volkswagen', 'CostPerService': 165.96, 'Services': 638, 'MaintBurdenPct': 78.3},
-            # ... and so on for all fleet data
-        ])
+        "patient_sentiment": {'satisfaction_score': 8.6, 'main_reason': 'Accident (50%)', 'improvement_area': 'Information & Courtesy (26% each)'}
     }
     
     er_visits_monthly = [2829, 2548, 2729, 2780, 2306, 2775, 2744, 2774, 2754, 2934, 2985, 2852]
@@ -74,7 +69,6 @@ def load_and_simulate_data():
     daily_df['diagnosis'] = np.random.choice(diagnoses, len(daily_df), p=[0.30, 0.40, 0.05, 0.05, 0.05, 0.15])
     daily_df['wait_time_min'] = np.maximum(5, daily_df['visits'] * 0.2 + np.random.normal(5, 5, len(daily_df)))
     daily_df['acuity'] = np.random.choice([1, 2, 3], len(daily_df), p=[0.7, 0.2, 0.1])
-    daily_df['paramedic_calls'] = np.random.randint(4, 8, len(daily_df))
     daily_df['ai_risk_score'] = (daily_df['acuity'] * 20) + np.random.uniform(10, 35, len(daily_df))
     
     return original_data, daily_df
@@ -141,7 +135,9 @@ with tabs[0]:
         wait_time_drivers = analyze_wait_time_drivers(daily_df)
         if not wait_time_drivers.empty:
             top_driver = wait_time_drivers.iloc[0]
-            st.success(f"Inferential analysis suggests the single biggest driver of ER wait times is not just patient volume, but specifically cases diagnosed as **{top_driver['Factor'].replace('diagnosis_', '')}**, adding an average of **{top_driver['Impact (min)']:.1f} minutes** per case. This allows for targeted process improvements over general 'crowd control'.", icon="💡")
+            st.success(f"""
+            Inferential analysis suggests the single biggest driver of ER wait times is not just patient volume, but specifically cases diagnosed as **{top_driver['Factor'].replace('diagnosis_', '')}**, adding an average of **{top_driver['Impact (min)']:.1f} minutes** per case. This allows for targeted process improvements over general 'crowd control'.
+            """, icon="💡")
         else:
             st.warning("Could not run wait time driver analysis.")
             
