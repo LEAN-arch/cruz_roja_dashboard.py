@@ -1,6 +1,6 @@
 # cruz_roja_dashboard.py
 # An interactable, actionable dashboard based on the 2013 Cruz Roja Tijuana Situational Diagnosis.
-# Designed by an SME for strategic leadership.
+# Designed by an SME for strategic leadership. (V2 - Obsolete option removed)
 
 import streamlit as st
 import pandas as pd
@@ -89,7 +89,7 @@ kpi_data, funding_data, data_integrity_data, dispatch_time_data, response_time_b
 
 
 # --- Dashboard UI ---
-st.set_option('deprecation.showPyplotGlobalUse', False) # Suppress minor warnings
+# The obsolete st.set_option line has been removed.
 
 # --- Header ---
 st.image("https://cruzrojatijuana.org.mx/wp-content/uploads/2022/10/logo.png", width=250)
@@ -118,7 +118,7 @@ with tab1:
     kpi_cols[1].metric("Prehospital Patients", f"{kpi_data['prehospital_patients_attended']:,}")
     kpi_cols[2].metric("Avg. Response Time", kpi_data['avg_response_time'])
     kpi_cols[3].metric("Annual Operating Cost", f"${kpi_data['total_annual_operating_cost']:,.0f} MXN")
-    kpi_cols[4].metric("Hospital Safety Index", kpi_data['hospital_safety_index'], delta_color="inverse")
+    kpi_cols[4].metric("Hospital Safety Index", kpi_data['hospital_safety_index'], delta="-CRITICAL-", delta_color="inverse")
     
     st.divider()
     
