@@ -1,4 +1,4 @@
-# cruz_roja_dashboard_platinum_final_v5.py
+# cruz_roja_dashboard_platinum_final_v5_complete.py
 # The definitive, AI-enhanced dashboard based on the 2013 Cruz Roja Tijuana Situational Diagnosis.
 # This version is complete, unabridged, and includes all data, strategic enhancements, and AI modules.
 
@@ -51,7 +51,25 @@ def load_and_simulate_data():
         "certification_data": {'Doctors_ATLS': 13, 'Paramedics_ACLS': 67, 'Nurses_ACLS': 16},
         "disaster_readiness": {"Hospital Safety Index": "C (Urgent Action Required)"},
         "staff_sentiment": {'strengths': {'Paramedic': 'Services Offered (59%)'},'opportunities': {'Paramedic': 'Salary (45%)'},'motivation': {'Paramedic': 'Salary (69%)'}},
-        "patient_sentiment": {'satisfaction_score': 8.6, 'main_reason': 'Accident (50%)', 'improvement_area': 'Information & Courtesy (26% each)'}
+        "patient_sentiment": {'satisfaction_score': 8.6, 'main_reason': 'Accident (50%)', 'improvement_area': 'Information & Courtesy (26% each)'},
+        "ambulance_fleet_analysis": pd.DataFrame([
+            {'Unit': 175, 'Brand': 'Mercedes', 'CostPerService': 178.34, 'Services': 722, 'MaintBurdenPct': 87.4},
+            {'Unit': 163, 'Brand': 'Volkswagen', 'CostPerService': 165.96, 'Services': 638, 'MaintBurdenPct': 78.3},
+            {'Unit': 169, 'Brand': 'Volkswagen', 'CostPerService': 157.78, 'Services': 1039, 'MaintBurdenPct': 25.7},
+            {'Unit': 170, 'Brand': 'Volkswagen', 'CostPerService': 130.41, 'Services': 1048, 'MaintBurdenPct': 25.6},
+            {'Unit': 176, 'Brand': 'Mercedes', 'CostPerService': 120.73, 'Services': 676, 'MaintBurdenPct': 97.1},
+            {'Unit': 167, 'Brand': 'Nissan', 'CostPerService': 114.04, 'Services': 677, 'MaintBurdenPct': 2.3},
+            {'Unit': 196, 'Brand': 'Peugeot', 'CostPerService': 110.00, 'Services': 663, 'MaintBurdenPct': 16.9},
+            {'Unit': 183, 'Brand': 'Ford', 'CostPerService': 100.28, 'Services': 1620, 'MaintBurdenPct': 6.7},
+            {'Unit': 184, 'Brand': 'Ford', 'CostPerService': 98.17, 'Services': 1164, 'MaintBurdenPct': 1.9},
+        ]),
+        "material_cost_per_acuity": pd.DataFrame([
+            {'Acuity': 'Deceased on Arrival', 'Material Cost': 17.45},
+            {'Acuity': 'Minor', 'Material Cost': 39.48},
+            {'Acuity': 'Non-Critical', 'Material Cost': 65.30},
+            {'Acuity': 'Critical (Trauma)', 'Material Cost': 338.49},
+            {'Acuity': 'Critical (Medical)', 'Material Cost': 389.25},
+        ])
     }
     
     er_visits_monthly = [2829, 2548, 2729, 2780, 2306, 2775, 2744, 2774, 2754, 2934, 2985, 2852]
@@ -122,29 +140,44 @@ with tabs[0]:
     st.header("Top-Level Findings & Key Strategic Insights")
     st.info("This dashboard synthesizes the 111-page report into actionable insights, augmented with predictive capabilities.", icon="💡")
     
-    col1, col2 = st.columns(2, gap="large")
-    with col1:
-        st.error(f"**Systemic Risk:** Hospital Safety Index is Class **'{original_data['disaster_readiness']['Hospital Safety Index'][0]}'**. This indicates urgent remediation is required.", icon="🚨")
-        st.warning(f"**Financial Vulnerability:** **{original_data['funding_data']['Percentage'].iloc[0]}%** of funding comes from donations and projects.", icon="💰")
-    with col2:
-        st.warning(f"**Skills Gap:** Only **{original_data['certification_data']['Doctors_ATLS']}%** of Doctors have critical ATLS (Trauma) certification.", icon="⚠️")
-        st.error(f"**Data & Legal Risk:** **{100 - (original_data['data_integrity_gap']['values'][2]/original_data['data_integrity_gap']['values'][1]*100):.0f}%** of logged services lack a final patient report (FRAP).", icon="📄")
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Hospital Safety Index", original_data['disaster_readiness']['Hospital Safety Index'])
+    col2.metric("Doctor ATLS Certification", f"{original_data['certification_data']['Doctors_ATLS']}%")
+    col3.metric("Dependence on Donations", f"{original_data['funding_data']['Percentage'].iloc[0]}%")
+    col4.metric("Data Reporting Gap", f"{100 - (original_data['data_integrity_gap']['values'][2]/original_data['data_integrity_gap']['values'][1]*100):.0f}%")
     
     st.divider()
-    st.subheader("AI-Driven Insight: What Truly Drives Patient Wait Times?")
-    wait_time_drivers = analyze_wait_time_drivers(daily_df)
-    if not wait_time_drivers.empty:
-        top_driver = wait_time_drivers.iloc[0]
-        st.success(f"""
-        Inferential analysis suggests the single biggest driver of ER wait times is not just patient volume, but specifically cases diagnosed as **{top_driver['Factor'].replace('diagnosis_', '')}**, adding an average of **{top_driver['Impact (min)']:.1f} minutes** per case. This allows for targeted process improvements over general 'crowd control'.
-        """, icon="💡")
+    
+    colA, colB = st.columns(2, gap="large")
+    with colA:
+        st.subheader("AI-Driven Insight: What Drives Wait Times?")
+        wait_time_drivers = analyze_wait_time_drivers(daily_df)
+        if not wait_time_drivers.empty:
+            top_driver = wait_time_drivers.iloc[0]
+            st.success(f"""
+            Inferential analysis suggests the single biggest driver of ER wait times is not just patient volume, but specifically cases diagnosed as **{top_driver['Factor'].replace('diagnosis_', '')}**, adding an average of **{top_driver['Impact (min)']:.1f} minutes** per case. This allows for targeted process improvements over general 'crowd control'.
+            """, icon="💡")
+        else:
+            st.warning("Could not run wait time driver analysis.")
+            
+    with colB:
+        st.subheader("Data Integrity: Critical Leakage in Reporting")
+        fig_gap = go.Figure(go.Funnel(
+            y=original_data['data_integrity_gap']['stages'], 
+            x=original_data['data_integrity_gap']['values'],
+            textinfo="value+percent previous",
+            marker={"color": [PRIMARY_COLOR, ACCENT_COLOR_WARN, ACCENT_COLOR_BAD]},
+            connector={"line": {"color": "darkgrey", "dash": "dot", "width": 2}}
+        ))
+        fig_gap.update_layout(title_text="23% of Services Lack Patient Reports (FRAPs)", title_x=0.5, margin=dict(t=50, b=10, l=10, r=10), template=PLOTLY_TEMPLATE)
+        st.plotly_chart(fig_gap, use_container_width=True)
 
 # ============================ TAB 1: AI & PREDICTIVE ANALYTICS ============================
 with tabs[1]:
     st.header("🔮 AI & Predictive Analytics Hub")
     st.markdown("Use predictive forecasts and inferential statistics to guide strategic decisions.")
-    st.subheader("Interactive Capacity, Staffing, and Financial Forecasting")
     
+    st.subheader("Interactive Capacity, Staffing, and Financial Forecasting")
     col1, col2 = st.columns([2, 1], gap="large")
     with col1:
         st.markdown("#### Forecasted Patient Demand")
@@ -162,7 +195,7 @@ with tabs[1]:
         if fte_deficit > 0:
             st.warning(f"Projected Staffing Shortfall of {fte_deficit:.2f} FTEs", icon="⚠️")
             if cost_of_hiring < cost_of_overtime: st.success(f"**Insight:** Hiring **{np.ceil(fte_deficit):.0f} FTE(s)** (cost: `${cost_of_hiring:,.0f}`) is more cost-effective than covering with overtime (cost: `${cost_of_overtime:,.0f}`).", icon="✅")
-            else: st.info(f"Insight: Covering with overtime (cost: `${cost_of_overtime:,.0f}`) may be more cost-effective than hiring (cost: `${cost_of_hiring:,.0f}`) for this short-term period.")
+            else: st.info(f"Insight: Covering with overtime (cost: `${cost_of_overtime:,.0f}`) may be more cost-effective for this short-term period.")
 
 # ============================ TAB 2: POPULATION & CONTEXT ============================
 with tabs[2]:
@@ -195,11 +228,13 @@ with tabs[3]:
         st.markdown("#### Ambulance Fleet Efficiency")
         df_fleet = original_data['ambulance_fleet_analysis']
         fig_fleet = px.scatter(df_fleet, x='Services', y='CostPerService', size='MaintBurdenPct', color='Brand', hover_name='Unit', size_max=40, title="Fleet Analysis: Workload vs. Cost per Service", labels={'Services': 'Total Services Rendered', 'CostPerService': 'Cost per Service (MXN)'}); fig_fleet.update_layout(template=PLOTLY_TEMPLATE, legend_title_text='Ambulance Brand'); st.plotly_chart(fig_fleet, use_container_width=True); st.caption("Bubble size represents maintenance burden (% of initial cost). Larger bubbles are worse.")
+        st.warning("**Actionability:** Units in the top-left (low use, high cost) like Mercedes and Peugeot are prime candidates for replacement with more cost-effective models like Ford and Nissan.")
     with opt_col2:
         st.markdown("#### Material Costs by Patient Acuity")
         df_mat = original_data['material_cost_per_acuity']
         fig_mat = px.bar(df_mat, x='Material Cost', y='Acuity', orientation='h', title="Critical Patients Drive Material Costs", text='Material Cost'); fig_mat.update_traces(texttemplate='$%{text:,.2f}', textposition='inside', marker_color=PRIMARY_COLOR); fig_mat.update_layout(template=PLOTLY_TEMPLATE, xaxis_title="Average Material Cost per Call (MXN)", yaxis_title=None); st.plotly_chart(fig_mat, use_container_width=True)
         st.caption("Source: Table 19, p. 49")
+        st.warning("**Actionability:** Focus inventory control and supply chain efforts on high-cost items for critical care.")
 
 # ============================ TAB 4: PREHOSPITAL OPERATIONS ============================
 with tabs[4]:
@@ -257,7 +292,6 @@ with tabs[6]:
         st.metric("Paramedic Overtime as % of Normal Salary", f"{paramedic_overtime_pct:.1f}%")
         st.caption("High overtime is a leading indicator of staff burnout and turnover.")
 
-
 # ============================ TAB 7: RECOMMENDATIONS ============================
 with tabs[7]:
     st.header("📋 Strategic Recommendations")
@@ -265,17 +299,17 @@ with tabs[7]:
     st.subheader("Short-Term Priorities (Implement within 1 Year)")
     with st.expander("Show All Short-Term Recommendations"):
         st.markdown("""
-        - **Training & Certification:** Immediately fund and mandate ATLS for doctors and ACLS for paramedics and nurses.
-        - **Data Integrity:** Implement a mandatory, simplified digital FRAP system to close the 23% reporting gap.
-        - **Financial Modeling:** Use the AI capacity planner to conduct a formal cost-benefit analysis of overtime vs. new hires.
-        - **Operational Efficiency:** Establish a formal triage system at the hospital and pilot a tiered-response system for ambulances to better match resources to patient acuity.
-        - **Inventory:** Develop a system of maximums and minimums for supply management.
+        - **Legislation:** Propose municipal regulations for minimum EMT/paramedic education levels.
+        - **Data Integrity & PPE:** Enforce mandatory use of Personal Protective Equipment (PPE) and accurate, complete FRAP documentation for every incident.
+        - **Staffing:** Conduct a cost-benefit analysis of overtime vs. hiring new staff.
+        - **Triage:** Establish and implement a formal triage system at the hospital.
+        - **Training:** Mandate minimum certifications (BLS, ACLS, ATLS/PHTLS) for all clinical roles.
         """)
     st.subheader("Long-Term Strategic Goals (1-3+ Year Horizon)")
     with st.expander("Show All Long-Term Recommendations"):
         st.markdown("""
-        - **Infrastructure:** Launch a capital campaign to address the critical 'C' Hospital Safety Index and implement the "Hospital Seguro" program.
-        - **System Integration:** Form a state-level disaster management commission to integrate all emergency services.
-        - **Community Engagement:** Develop public education campaigns on the proper use of emergency services.
-        - **Research & Innovation:** Establish a formal prehospital research program to continuously improve care based on local data.
+        - **System Integration:** Form a state-level commission for disaster management that integrates all emergency medical services.
+        - **Disaster Funding:** Create mechanisms to mobilize dedicated funds for disaster response readiness.
+        - **Hospital Safety:** Implement the "Hospital Seguro" program to address the critical 'C' safety rating.
+        - **Community Engagement:** Develop public education programs on proper use of emergency services.
         """)
