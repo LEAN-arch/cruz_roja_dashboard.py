@@ -1,4 +1,4 @@
-# cruz_roja_dashboard_platinum_final_v2.py
+# cruz_roja_dashboard_platinum_final_v5.py
 # The definitive, AI-enhanced dashboard based on the 2013 Cruz Roja Tijuana Situational Diagnosis.
 # This version is complete, unabridged, and includes all data, strategic enhancements, and AI modules.
 
@@ -45,6 +45,8 @@ def load_and_simulate_data():
         "data_integrity_gap": {'values': [42264, 40809, 31409], 'stages': ["C-4 Calls Dispatched", "Services Logged", "Patient Reports (FRAP)"]},
         "patient_acuity_prehospital": pd.DataFrame([{"Category": "Minor", "Percentage": 67.3}, {"Category": "Non-Critical", "Percentage": 19.5}, {"Category": "Critical", "Percentage": 3.3}]),
         "response_time_by_base": pd.DataFrame({"Base": ["Base 10", "Base 8", "Base 4", "Base 11", "Base 58", "Base 0"], "Avg Response Time (min)": [17.17, 15.17, 14.85, 14.35, 12.90, 12.22]}),
+        "hospital_service_volume": pd.DataFrame([{"Area": "Hospitalized", "Patients": 650}, {"Area": "Pediatrics", "Patients": 206}, {"Area": "Red Room (Critical)", "Patients": 95}, {"Area": "ICU", "Patients": 56}]),
+        "er_bed_occupancy_monthly": pd.DataFrame({'Month': ['Oct','Nov','Dec','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep'], 'Occupancy (%)': [40.5, 45.0, 47.2, 44.7, 43.3, 46.6, 49.3, 49.9, 43.7, 48.9, 44.2, 45.0]}),
         "hospital_kpis": {"er_patients_annual": 33010, "avg_er_wait_time": "23:27", "avg_bed_occupancy_er": 45.4, "er_compliance_score": 87, "er_specialized_compliance": 95},
         "certification_data": {'Doctors_ATLS': 13, 'Paramedics_ACLS': 67, 'Nurses_ACLS': 16},
         "disaster_readiness": {"Hospital Safety Index": "C (Urgent Action Required)"},
@@ -110,52 +112,37 @@ st.title("AI-Enhanced Strategic Command Center: Cruz Roja Tijuana")
 st.markdown("_A definitive dashboard integrating the 2013 diagnosis with predictive analytics for maximum actionability._")
 st.divider()
 
-# --- Main Tabs ---
 tabs = st.tabs([
-    "📈 **Executive Summary**", "🔮 **AI & Predictive Analytics**", "🏙️ **Population & Context**", "💰 **Financial Health**", 
+    "📈 **Executive Summary**", "🔮 **AI & Predictive Analytics**", "🏙️ **Population & Context**", "💰 **Financial Health & Optimization**", 
     "🚑 **Prehospital Operations**", "🏥 **Hospital Services**", "👥 **HR & Sentiment**", "📋 **Recommendations**"
 ])
 
 # ============================ TAB 0: EXECUTIVE SUMMARY ============================
 with tabs[0]:
     st.header("Top-Level Findings & Key Strategic Insights")
-    st.info("""
-    This dashboard synthesizes the 111-page report into actionable insights. The most critical findings are:
-    1.  **Financial Vulnerability:** High dependence on donations (53%) and significant operational data gaps pose financial risks.
-    2.  **Operational Mismatch:** A highly skilled dispatch system sends advanced life support units to a majority (67%) of minor incidents.
-    3.  **Systemic Risk:** The main hospital has a critical 'C' safety rating, making it vulnerable in a major disaster.
-    4.  **Skills Gap:** There are significant gaps in essential trauma and life-support certifications (e.g., only 13% of doctors ATLS certified).
-    """, icon="❗")
-    st.divider()
+    st.info("This dashboard synthesizes the 111-page report into actionable insights, augmented with predictive capabilities.", icon="💡")
     
     col1, col2 = st.columns(2, gap="large")
     with col1:
-        st.subheader("AI-Driven Insight: What Drives Wait Times?")
-        wait_time_drivers = analyze_wait_time_drivers(daily_df)
-        if not wait_time_drivers.empty:
-            top_driver = wait_time_drivers.iloc[0]
-            st.success(f"""
-            Inferential analysis suggests the single biggest driver of ER wait times is not just patient volume, but specifically cases diagnosed as **{top_driver['Factor'].replace('diagnosis_', '')}**, adding an average of **{top_driver['Impact (min)']:.1f} minutes** per case.
-            """, icon="💡")
-            st.caption("This allows for targeted process improvements over general 'crowd control'.")
-        else:
-            st.warning("Could not run wait time driver analysis.")
-            
+        st.error(f"**Systemic Risk:** Hospital Safety Index is Class **'{original_data['disaster_readiness']['Hospital Safety Index'][0]}'**. This indicates urgent remediation is required.", icon="🚨")
+        st.warning(f"**Financial Vulnerability:** **{original_data['funding_data']['Percentage'].iloc[0]}%** of funding comes from donations and projects.", icon="💰")
     with col2:
-        st.subheader("Data Integrity: Critical Leakage in Reporting")
-        fig_gap = go.Figure(go.Funnel(
-            y=original_data['data_integrity_gap']['stages'], 
-            x=original_data['data_integrity_gap']['values'],
-            textinfo="value+percent previous",
-            marker={"color": [PRIMARY_COLOR, ACCENT_COLOR_WARN, ACCENT_COLOR_BAD]},
-            connector={"line": {"color": "darkgrey", "dash": "dot", "width": 2}}
-        ))
-        fig_gap.update_layout(title_text="23% of Services Lack Patient Reports (FRAPs)", title_x=0.5, margin=dict(t=50, b=10, l=10, r=10), template=PLOTLY_TEMPLATE)
-        st.plotly_chart(fig_gap, use_container_width=True)
+        st.warning(f"**Skills Gap:** Only **{original_data['certification_data']['Doctors_ATLS']}%** of Doctors have critical ATLS (Trauma) certification.", icon="⚠️")
+        st.error(f"**Data & Legal Risk:** **{100 - (original_data['data_integrity_gap']['values'][2]/original_data['data_integrity_gap']['values'][1]*100):.0f}%** of logged services lack a final patient report (FRAP).", icon="📄")
+    
+    st.divider()
+    st.subheader("AI-Driven Insight: What Truly Drives Patient Wait Times?")
+    wait_time_drivers = analyze_wait_time_drivers(daily_df)
+    if not wait_time_drivers.empty:
+        top_driver = wait_time_drivers.iloc[0]
+        st.success(f"""
+        Inferential analysis suggests the single biggest driver of ER wait times is not just patient volume, but specifically cases diagnosed as **{top_driver['Factor'].replace('diagnosis_', '')}**, adding an average of **{top_driver['Impact (min)']:.1f} minutes** per case. This allows for targeted process improvements over general 'crowd control'.
+        """, icon="💡")
 
 # ============================ TAB 1: AI & PREDICTIVE ANALYTICS ============================
 with tabs[1]:
     st.header("🔮 AI & Predictive Analytics Hub")
+    st.markdown("Use predictive forecasts and inferential statistics to guide strategic decisions.")
     st.subheader("Interactive Capacity, Staffing, and Financial Forecasting")
     
     col1, col2 = st.columns([2, 1], gap="large")
@@ -163,41 +150,21 @@ with tabs[1]:
         st.markdown("#### Forecasted Patient Demand")
         forecast_days = st.slider("Days to Forecast Ahead:", 7, 90, 30, key="forecast_days")
         forecast_df = get_prophet_forecast(daily_df, forecast_days)
-        
-        fig_forecast = go.Figure()
-        fig_forecast.add_trace(go.Scatter(x=forecast_df['ds'], y=forecast_df['yhat_upper'], fill=None, mode='lines', line_color='rgba(0,123,255,0.2)', name='Uncertainty Range'))
-        fig_forecast.add_trace(go.Scatter(x=forecast_df['ds'], y=forecast_df['yhat_lower'], fill='tonexty', mode='lines', line_color='rgba(0,123,255,0.2)'))
-        fig_forecast.add_trace(go.Scatter(x=daily_df['date'], y=daily_df['visits'], mode='markers', name='Historical Daily Visits', marker=dict(color='black', opacity=0.6, size=4)))
-        fig_forecast.add_trace(go.Scatter(x=forecast_df['ds'], y=forecast_df['yhat'], mode='lines', name='Forecasted Trend', line=dict(color=PRIMARY_COLOR, width=3)))
-        fig_forecast.update_layout(xaxis_title="Date", yaxis_title="Daily ER Visits", legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1), template=PLOTLY_TEMPLATE)
-        st.plotly_chart(fig_forecast, use_container_width=True)
+        fig_forecast = go.Figure(); fig_forecast.add_trace(go.Scatter(x=forecast_df['ds'], y=forecast_df['yhat_upper'], fill=None, mode='lines', line_color='rgba(0,123,255,0.2)', name='Uncertainty Range')); fig_forecast.add_trace(go.Scatter(x=forecast_df['ds'], y=forecast_df['yhat_lower'], fill='tonexty', mode='lines', line_color='rgba(0,123,255,0.2)')); fig_forecast.add_trace(go.Scatter(x=daily_df['date'], y=daily_df['visits'], mode='markers', name='Historical Data', marker=dict(color='black', opacity=0.6, size=4))); fig_forecast.add_trace(go.Scatter(x=forecast_df['ds'], y=forecast_df['yhat'], mode='lines', name='Forecasted Trend', line=dict(color=PRIMARY_COLOR, width=3))); fig_forecast.update_layout(xaxis_title="Date", yaxis_title="Daily ER Visits", legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1), template=PLOTLY_TEMPLATE); st.plotly_chart(fig_forecast, use_container_width=True)
     
     with col2:
         st.markdown("#### What-If Scenario: Staffing vs. Cost")
         available_fte = st.slider("Number of Available Clinicians (FTE):", 1, 20, 10, key="fte_slider")
-        
-        future_forecast = forecast_df[forecast_df['ds'] > daily_df['date'].max()]
-        required_fte = (future_forecast['yhat'].sum() * 20) / 60 / (8 * forecast_days) if forecast_days > 0 else 0
-        fte_deficit = required_fte - available_fte
-        utilization_pct = (required_fte / available_fte * 100) if available_fte > 0 else 500
-        
-        cost_per_fte_weekly = original_data['weekly_costs']['Normal'][0] / 10
-        overtime_cost_per_hour = 100 
-        
-        cost_of_hiring = max(0, fte_deficit * cost_per_fte_weekly * (forecast_days / 7))
-        cost_of_overtime = max(0, fte_deficit * 8 * forecast_days * overtime_cost_per_hour)
-        
-        st.metric("Required FTE for Forecast Period", f"{required_fte:.2f}")
-        st.metric("Current Staffing Surplus / Deficit", f"{(-fte_deficit):.2f}", delta_color="off")
-        
+        future_forecast = forecast_df[forecast_df['ds'] > daily_df['date'].max()]; required_fte = (future_forecast['yhat'].sum() * 20) / 60 / (8 * forecast_days) if forecast_days > 0 else 0; fte_deficit = required_fte - available_fte; utilization_pct = (required_fte / available_fte * 100) if available_fte > 0 else 500
+        cost_per_fte_weekly = original_data['weekly_costs']['Normal'][0] / 10; overtime_cost_per_hour = 100 
+        cost_of_hiring = max(0, fte_deficit * cost_per_fte_weekly * (forecast_days / 7)); cost_of_overtime = max(0, fte_deficit * 8 * forecast_days * overtime_cost_per_hour)
+        st.metric("Required FTE for Forecast Period", f"{required_fte:.2f}"); st.metric("Current Staffing Surplus / Deficit", f"{(-fte_deficit):.2f}", delta_color="off")
         if fte_deficit > 0:
             st.warning(f"Projected Staffing Shortfall of {fte_deficit:.2f} FTEs", icon="⚠️")
-            if cost_of_hiring < cost_of_overtime:
-                st.success(f"**Insight:** Hiring **{np.ceil(fte_deficit):.0f} FTE(s)** (cost: `${cost_of_hiring:,.0f}`) is more cost-effective than covering the gap with overtime (cost: `${cost_of_overtime:,.0f}`).", icon="✅")
-            else:
-                st.info(f"Insight: Covering with overtime (cost: `${cost_of_overtime:,.0f}`) may be more cost-effective than hiring (cost: `${cost_of_hiring:,.0f}`) for this short-term period.")
+            if cost_of_hiring < cost_of_overtime: st.success(f"**Insight:** Hiring **{np.ceil(fte_deficit):.0f} FTE(s)** (cost: `${cost_of_hiring:,.0f}`) is more cost-effective than covering with overtime (cost: `${cost_of_overtime:,.0f}`).", icon="✅")
+            else: st.info(f"Insight: Covering with overtime (cost: `${cost_of_overtime:,.0f}`) may be more cost-effective than hiring (cost: `${cost_of_hiring:,.0f}`) for this short-term period.")
 
-# ============================ TAB 3: POPULATION & CONTEXT ============================
+# ============================ TAB 2: POPULATION & CONTEXT ============================
 with tabs[2]:
     st.header("🏙️ Population & Context")
     col1, col2 = st.columns(2)
@@ -210,31 +177,31 @@ with tabs[2]:
         st.plotly_chart(px.pie(original_data['marginalization_data'], names='Level', values='Percentage', title="~60% of Population in Medium to High Poverty"), use_container_width=True)
         st.caption("Source: Figure 2, p. 22")
 
-# ============================ TAB 4: FINANCIAL HEALTH ============================
+# ============================ TAB 3: FINANCIAL HEALTH & OPTIMIZATION ============================
 with tabs[3]:
-    st.header("💰 Financial Health Analysis")
+    st.header("💰 Financial Health & Resource Optimization")
+    st.subheader("Funding & High-Level Costs")
     col1, col2 = st.columns([1,2])
     with col1:
         st.metric("Uninsured Patients Served", f"{original_data['uninsured_patients_pct']}%", help="Source: Fig 5, p. 31")
-        st.subheader("Funding Sources")
-        st.plotly_chart(px.pie(original_data['funding_data'], names='Source', values='Percentage', hole=0.4, title="53% of Funding from Donations"), use_container_width=True)
-        st.caption("Source: Table 2, p. 30")
+        st.plotly_chart(px.pie(original_data['funding_data'], names='Source', values='Percentage', hole=0.4, title="Funding Sources"), use_container_width=True)
     with col2:
-        st.subheader("Monthly Operating Costs (MXN)")
-        fig = px.bar(original_data['monthly_operating_costs'], x='Month', y=['Medical', 'Paramedic'], title="Operational Costs Fluctuate Monthly")
+        fig = px.bar(original_data['monthly_operating_costs'], x='Month', y=['Medical', 'Paramedic'], title="Monthly Operating Costs (MXN)")
         st.plotly_chart(fig, use_container_width=True)
-        st.caption("Source: Table 3, p. 30")
     st.divider()
-    st.subheader("Cost Breakdowns")
-    colA, colB = st.columns(2)
-    with colA:
-        st.plotly_chart(px.bar(original_data['cost_per_patient_type'], x='Cost', y='Type', orientation='h', title="Cost per Patient by Acuity"), use_container_width=True)
-        st.caption("Source: Table 18, p. 49")
-    with colB:
-        st.plotly_chart(px.bar(original_data['cost_per_patient_area'], x='Cost', y='Area', orientation='h', title="Cost per Patient by Hospital Area"), use_container_width=True)
-        st.caption("Source: Table 27, p. 65")
+    st.subheader("⚙️ Resource Optimization & Cost Reduction")
+    opt_col1, opt_col2 = st.columns(2, gap="large")
+    with opt_col1:
+        st.markdown("#### Ambulance Fleet Efficiency")
+        df_fleet = original_data['ambulance_fleet_analysis']
+        fig_fleet = px.scatter(df_fleet, x='Services', y='CostPerService', size='MaintBurdenPct', color='Brand', hover_name='Unit', size_max=40, title="Fleet Analysis: Workload vs. Cost per Service", labels={'Services': 'Total Services Rendered', 'CostPerService': 'Cost per Service (MXN)'}); fig_fleet.update_layout(template=PLOTLY_TEMPLATE, legend_title_text='Ambulance Brand'); st.plotly_chart(fig_fleet, use_container_width=True); st.caption("Bubble size represents maintenance burden (% of initial cost). Larger bubbles are worse.")
+    with opt_col2:
+        st.markdown("#### Material Costs by Patient Acuity")
+        df_mat = original_data['material_cost_per_acuity']
+        fig_mat = px.bar(df_mat, x='Material Cost', y='Acuity', orientation='h', title="Critical Patients Drive Material Costs", text='Material Cost'); fig_mat.update_traces(texttemplate='$%{text:,.2f}', textposition='inside', marker_color=PRIMARY_COLOR); fig_mat.update_layout(template=PLOTLY_TEMPLATE, xaxis_title="Average Material Cost per Call (MXN)", yaxis_title=None); st.plotly_chart(fig_mat, use_container_width=True)
+        st.caption("Source: Table 19, p. 49")
 
-# ============================ TAB 5: PREHOSPITAL OPERATIONS ============================
+# ============================ TAB 4: PREHOSPITAL OPERATIONS ============================
 with tabs[4]:
     st.header("🚑 Prehospital Operations")
     col1, col2 = st.columns(2)
@@ -251,22 +218,18 @@ with tabs[4]:
     st.plotly_chart(px.bar(original_data['response_time_by_base'].sort_values("Avg Response Time (min)"), y="Base", x="Avg Response Time (min)", orientation='h', title="Response Times Vary Significantly by Base", text="Avg Response Time (min)").update_traces(texttemplate='%{text:.1f} min', textposition='inside'), use_container_width=True)
     st.caption("Source: Table 17, p. 48")
 
-# ============================ TAB 6: HOSPITAL SERVICES ============================
+# ============================ TAB 5: HOSPITAL SERVICES ============================
 with tabs[5]:
     st.header("🏥 Hospital Services")
     kpis = original_data['hospital_kpis']
-    hosp_cols = st.columns(3)
-    hosp_cols[0].metric("Annual ER Patients", f"{kpis['er_patients_annual']:,}")
-    hosp_cols[1].metric("Avg. ER Wait Time", kpis['avg_er_wait_time'])
-    hosp_cols[2].metric("Avg. ER Bed Occupancy", f"{kpis['avg_bed_occupancy_er']}%")
+    hosp_cols = st.columns(3); hosp_cols[0].metric("Annual ER Patients", f"{kpis['er_patients_annual']:,}"); hosp_cols[1].metric("Avg. ER Wait Time", kpis['avg_er_wait_time']); hosp_cols[2].metric("Avg. ER Bed Occupancy", f"{kpis['avg_bed_occupancy_er']}%")
     st.divider()
-    st.subheader("Facility Compliance & Disaster Readiness")
-    colA, colB, colC = st.columns(3)
-    colA.metric("ER General Compliance Score", f"{kpis['er_compliance_score']}%")
-    colB.metric("ER Specialized Equipment Compliance", f"{kpis['er_specialized_compliance']}%")
-    colC.metric("Hospital Safety Index", f"{original_data['disaster_readiness']['Hospital Safety Index']}")
+    st.subheader("Facility Compliance Scores")
+    st.progress(kpis['er_compliance_score'], text=f"ER General Compliance Score: {kpis['er_compliance_score']}%")
+    st.progress(kpis['er_specialized_compliance'], text=f"ER Specialized Equipment Compliance: {kpis['er_specialized_compliance']}%")
+    st.caption("Source: p. 70")
 
-# ============================ TAB 7: HR & SENTIMENT ============================
+# ============================ TAB 6: HR & SENTIMENT ============================
 with tabs[6]:
     st.header("👥 HR & Sentiment")
     col1, col2 = st.columns(2)
@@ -274,32 +237,45 @@ with tabs[6]:
         st.subheader("Staff & Patient Survey Insights")
         st.markdown("##### Staff Sentiment (Source: p. 96-99)")
         st.info(f"**Main Strength:** {original_data['staff_sentiment']['strengths']['Paramedic']}")
-        st.warning(f"**Top Improvement Opportunity:** {original_data['staff_sentiment']['opportunities']['Paramedic']} for paramedics.")
-        st.error(f"**Primary Motivation Driver:** {original_data['staff_sentiment']['motivation']['Paramedic']} for paramedics.")
+        st.warning(f"**Top Improvement Opportunity:** {original_data['staff_sentiment']['opportunities']['Paramedic']}")
+        st.error(f"**Primary Motivation Driver:** {original_data['staff_sentiment']['motivation']['Paramedic']}")
     with col2:
         st.markdown("##### Patient Sentiment (Source: p. 103-104)")
         st.info(f"**Overall Satisfaction:** High, with an average rating of **{original_data['patient_sentiment']['satisfaction_score']}/10**.")
         st.warning(f"**Top Improvement Area:** {original_data['patient_sentiment']['improvement_area']}.")
         st.success(f"**Primary Reason for Visit:** **{original_data['patient_sentiment']['main_reason']}**.")
+    st.divider()
+    st.subheader("System Resilience: Disaster Readiness & Staff Burnout")
+    colA, colB = st.columns(2)
+    with colA:
+        st.error(f"**Hospital Safety Index: {original_data['disaster_readiness']['Hospital Safety Index']}**", icon="🚨")
+        st.caption("A Class 'C' rating indicates the facility is not resilient to major disasters.")
+    with colB:
+        st.warning("**High Overtime Burden**", icon="⏱️")
+        weekly_cost_df = original_data['weekly_costs']
+        paramedic_overtime_pct = (weekly_cost_df[weekly_cost_df['Category']=='Paramedic']['Overtime'].iloc[0] / weekly_cost_df[weekly_cost_df['Category']=='Paramedic']['Normal'].iloc[0]) * 100
+        st.metric("Paramedic Overtime as % of Normal Salary", f"{paramedic_overtime_pct:.1f}%")
+        st.caption("High overtime is a leading indicator of staff burnout and turnover.")
 
-# ============================ TAB 8: RECOMMENDATIONS ============================
+
+# ============================ TAB 7: RECOMMENDATIONS ============================
 with tabs[7]:
     st.header("📋 Strategic Recommendations")
     st.markdown("A complete list of actionable short and long-term recommendations proposed in the 2013 report.")
     st.subheader("Short-Term Priorities (Implement within 1 Year)")
     with st.expander("Show All Short-Term Recommendations"):
         st.markdown("""
-        - **Legislation:** Propose municipal regulations for minimum EMT/paramedic education levels.
-        - **Data Integrity & PPE:** Enforce mandatory use of Personal Protective Equipment (PPE) and accurate, complete FRAP documentation for every incident.
-        - **Staffing:** Conduct a cost-benefit analysis of overtime vs. hiring new staff.
-        - **Triage:** Establish and implement a formal triage system at the hospital.
-        - **Training:** Mandate minimum certifications (BLS, ACLS, ATLS/PHTLS) for all clinical roles.
+        - **Training & Certification:** Immediately fund and mandate ATLS for doctors and ACLS for paramedics and nurses.
+        - **Data Integrity:** Implement a mandatory, simplified digital FRAP system to close the 23% reporting gap.
+        - **Financial Modeling:** Use the AI capacity planner to conduct a formal cost-benefit analysis of overtime vs. new hires.
+        - **Operational Efficiency:** Establish a formal triage system at the hospital and pilot a tiered-response system for ambulances to better match resources to patient acuity.
+        - **Inventory:** Develop a system of maximums and minimums for supply management.
         """)
     st.subheader("Long-Term Strategic Goals (1-3+ Year Horizon)")
     with st.expander("Show All Long-Term Recommendations"):
         st.markdown("""
-        - **System Integration:** Form a state-level commission for disaster management that integrates all emergency medical services.
-        - **Disaster Funding:** Create mechanisms to mobilize dedicated funds for disaster response readiness.
-        - **Hospital Safety:** Implement the "Hospital Seguro" program to address the critical 'C' safety rating.
-        - **Community Engagement:** Develop public education programs on proper use of emergency services.
+        - **Infrastructure:** Launch a capital campaign to address the critical 'C' Hospital Safety Index and implement the "Hospital Seguro" program.
+        - **System Integration:** Form a state-level disaster management commission to integrate all emergency services.
+        - **Community Engagement:** Develop public education campaigns on the proper use of emergency services.
+        - **Research & Innovation:** Establish a formal prehospital research program to continuously improve care based on local data.
         """)
